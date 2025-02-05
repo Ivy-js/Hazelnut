@@ -33,17 +33,17 @@ async function generateUniqueKey(format) {
 }
 
 app.post('/create-key', async (req, res) => {
-    const { type, format } = req.body
+    const { type, format, gifter } = req.body
     if (!format || !format.includes('X')) {
         return res.status(400).json({ error: "Invalid format. Format must include 'X' characters." })
     }
     const key = await generateUniqueKey(format)
     const expiration = getExpirationDate(type)
     
-    await db.set(key, { type, expiration, redeemed: false })
-    res.json({ key, type, expiration })
+    await db.set(key, { type, expiration, gifter, redeemed: false })
+    res.json({ key, type, expiration, gifter })
 
-    console.log(`Hazelnut`.yellow +  ` Key created: ${key} (${type}, expires on ${expiration})`.green)
+    console.log(`Hazelnut`.yellow +  ` Key created: ${key} (${type}, expires on ${expiration}) | Gifted by ${gifter}`.green)
 })
 
 app.post('/redeem-key', async (req, res) => {
@@ -63,7 +63,8 @@ app.post('/redeem-key', async (req, res) => {
     }
 
     await db.set(key, { ...keyData, redeemed: true })
-    res.json({ success: "Key redeemed successfully" })
+    res.json({ message: "Key redeemed successfully", success: true, gifter: keyData.gifter })
+    console.log(`Hazelnut`.yellow + ` Key redeemed: ${key}`.green)  
 })
 
 
